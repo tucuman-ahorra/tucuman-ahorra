@@ -1,0 +1,391 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Tucumán Ahorra</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Concepto: app de bolsillo para comparar góndolas. Cabecera azul tinta, barra inferior de 4 secciones,
+   precios en tabulares y un solo acento cálido (naranja) reservado a descuentos. */
+:root{
+ --bg:#f2f5f8;--surface:#fff;--ink:#0e1f2d;--mute:#566a79;--line:#d8e1e8;
+ --head:#0a4d8c;--onhead:#fff;--sun:#ffcb2f;--link:#0a4d8c;
+ --good:#0a7340;--goodbg:#dff3e7;--hot:#a73a12;--hotbg:#fde6da;--bar:#bccbd8;--field:#fff;
+ --fd:"Bricolage Grotesque",system-ui,sans-serif;
+ --fb:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#0a1620;--surface:#122330;--ink:#e8f0f5;--mute:#9bb0be;--line:#23394a;
+ --head:#0f2d47;--onhead:#fff;--sun:#ffcb2f;--link:#7cbcf1;
+ --good:#5fd592;--goodbg:#12392a;--hot:#ffb08a;--hotbg:#42261a;--bar:#2f4757;--field:#0a1620;color-scheme:dark}}
+:root[data-theme="dark"]{
+ --bg:#0a1620;--surface:#122330;--ink:#e8f0f5;--mute:#9bb0be;--line:#23394a;
+ --head:#0f2d47;--onhead:#fff;--sun:#ffcb2f;--link:#7cbcf1;
+ --good:#5fd592;--goodbg:#12392a;--hot:#ffb08a;--hotbg:#42261a;--bar:#2f4757;--field:#0a1620;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--fb);
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--head);z-index:10}
+.in{max-width:680px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--head);color:var(--onhead);
+ margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+ padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px))}
+.brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{font:800 1.6rem/1 var(--fd);letter-spacing:-.02em}
+.brand b{color:var(--sun);font-weight:800}
+.fecha{font-size:.78rem;opacity:.85;white-space:nowrap}
+.sw{position:relative;margin-top:10px}
+.sw svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--mute);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+input[type=search]{width:100%;font:inherit;font-size:1.02rem;padding:12px 14px 12px 42px;min-height:46px;border:2px solid transparent;border-radius:12px;background:var(--field);color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
+input[type=search]:focus{border-color:var(--sun)}
+main{padding-top:16px}
+h2.sec{font:800 1.2rem/1.15 var(--fd);margin:22px 0 4px;letter-spacing:-.01em;text-wrap:balance}
+h2.sec:first-child{margin-top:4px}
+.lead{margin:0 0 12px;color:var(--mute);font-size:.92rem}
+.list{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.nm{font-weight:600;line-height:1.25;text-transform:capitalize;overflow-wrap:anywhere}
+.br{color:var(--mute);font-size:.8rem;text-transform:capitalize}
+.rows{margin-top:10px;display:grid;gap:9px}
+.r{display:grid;grid-template-columns:6.4rem minmax(0,1fr) auto;align-items:center;gap:10px}
+.cn{font-size:.82rem;line-height:1.15}
+.tag{display:block;font-size:.7rem;font-weight:700;color:var(--hot)}
+.tr{height:9px;border-radius:5px;position:relative}
+.tr i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:var(--bar)}
+.r.best .tr i{background:var(--good)}
+.pr{font:700 .98rem var(--fb);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pr s{display:block;font-weight:400;font-size:.72rem;color:var(--mute)}
+.pr .rg{display:block;font-weight:400;font-size:.72rem;color:var(--mute)}
+.r.best .pr{color:var(--good)}
+.save{margin-top:11px;padding:8px 10px;border-radius:9px;background:var(--goodbg);color:var(--good);font-size:.86rem;font-weight:600}
+.solo,.note{color:var(--mute);font-size:.82rem;margin-top:8px}
+.btn{font:inherit;font-weight:600;font-size:.9rem;min-height:44px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--head);border-color:var(--head);color:var(--onhead)}
+.btn.line{border-style:dashed;border-color:var(--link);color:var(--link);background:transparent}
+.btn.wide{width:100%;margin-top:12px}
+.acts{display:flex;gap:8px;margin-top:12px}
+.acts .btn{flex:1}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font:inherit;font-size:.9rem;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--head);border-color:var(--head);color:var(--onhead)}
+.wrapchips{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:flex;gap:8px;margin:6px 0 12px}
+.seg .btn{flex:1;font-size:.86rem}
+.seg .btn.on{background:var(--head);border-color:var(--head);color:var(--onhead)}
+.offer{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.badge{min-width:76px;text-align:center;padding:10px 6px;border-radius:12px;background:var(--hotbg);color:var(--hot);font:800 1.45rem/1 var(--fd);letter-spacing:-.02em}
+.badge small{display:block;font:600 .64rem var(--fb);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.meta{color:var(--mute);font-size:.82rem;margin-top:2px}
+.now{margin-top:6px;font:800 1.35rem/1.1 var(--fd);font-variant-numeric:tabular-nums}
+.now s{font:400 .85rem var(--fb);color:var(--mute);margin-left:6px}
+.sv{color:var(--good);font-size:.84rem;font-weight:600;margin-top:2px}
+.rk{font:800 1.8rem/1.05 var(--fd);margin-top:6px;letter-spacing:-.02em}
+.rk.up{color:var(--hot)}.rk.dn{color:var(--good)}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border:0}
+.li span{text-transform:capitalize;line-height:1.2;font-size:.92rem;overflow-wrap:anywhere}
+.qb{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:1.15rem;cursor:pointer}
+.qn{min-width:1.4rem;text-align:center;font-variant-numeric:tabular-nums}
+.plan{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:.88rem;margin-top:8px}
+.plan span:nth-child(odd){text-transform:capitalize;overflow-wrap:anywhere}
+.plan span:nth-child(even){text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.empty{color:var(--mute);text-align:center;margin:34px 10px}
+.stat{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.stat div{flex:1 1 0;min-width:0}
+.stat b{display:block;font:800 1.5rem/1.1 var(--fd);font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--mute)}
+footer.foot{margin-top:26px;color:var(--mute);font-size:.76rem;line-height:1.5}
+footer.foot b{color:var(--ink)}
+nav.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+ display:flex;justify-content:center;padding:0 max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px))}
+nav.tabbar .tw{display:flex;width:100%;max-width:680px}
+nav.tabbar button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:62px;padding:6px 2px;border:0;background:transparent;color:var(--mute);font:600 .7rem var(--fb);cursor:pointer}
+nav.tabbar svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav.tabbar button.on{color:var(--link)}
+nav.tabbar button.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--link)}
+.cnt{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--hot);color:var(--surface);font-size:.68rem;line-height:18px;text-align:center}
+:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+
+</head><body><header class="top"><div class="in">
+ <div class="brandrow"><div class="brand">Tucumán <b>Ahorra</b></div><div class="fecha" id="fch"></div></div>
+ <div class="sw"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+ <input id="q" type="search" placeholder="Buscá un producto: yerba, leche, aceite…" autocomplete="off" enterkeyhint="search" aria-label="Buscar producto"></div>
+</div></header>
+<main class="in" id="out"></main>
+<div class="in"><footer class="foot">
+ <p><b>Fuente:</b> Precios Claros (SEPA), Secretaría de Comercio de la Nación. Precios de lista informados por las sucursales de Tucumán a la fecha indicada; pueden variar en el local y no incluyen descuentos bancarios ni de tarjetas. No figuran todas las cadenas ni todas las sucursales. Si una cadena informa precios distintos entre sucursales, se muestra el más bajo y, debajo, el más alto ("hasta").</p>
+ <p>Sitio independiente, sin vínculo con las cadenas ni con el Gobierno.</p>
+</footer></div>
+<nav class="tabbar" aria-label="Secciones"><div class="tw">
+ <button type="button" data-v="buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar</button>
+ <button type="button" data-v="ofertas"><svg viewBox="0 0 24 24"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Descuentos</button>
+ <button type="button" data-v="precios"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Subas y bajas</button>
+ <button type="button" data-v="carrito"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>Carrito<span class="cnt" id="cn" hidden>0</span></button>
+</div></nav>
+
+<script>
+fetch("sepa_tucuman.json",{cache:"no-cache"}).then(r=>r.json()).then(D=>{
+const CH=D.cadenas;
+const NOM={"Changomas":"Changomás","HiperChangomas":"HiperChangomás","Hipermercado Carrefour":"Carrefour","Market":"Carrefour Market","La Anonima":"La Anónima"};
+const nm=i=>NOM[CH[i]]||CH[i];
+const $=id=>document.getElementById(id);
+const strip=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const money=n=>"$"+Math.round(n).toLocaleString("es-AR");
+const pc=x=>String(x).replace(".",",");
+const hoy=new Date();hoy.setHours(0,0,0,0);
+const RH=/hasta(?: el)? (\d{1,2})\/(\d{1,2})\/(\d{4})/i,RD=/desde(?: el)? (\d{1,2})\/(\d{1,2})\/(\d{4})/i;
+const fd=(re,l)=>{const m=re.exec(l||"");return m?new Date(+m[3],+m[2]-1,+m[1]):null};
+const vigente=l=>{const h=fd(RH,l),d=fd(RD,l);return(!h||h>=hoy)&&(!d||d<=hoy)};
+const hasta=l=>{const m=RH.exec(l||"");return m?m[1]+"/"+m[2]:""};
+const items=D.productos.map(r=>({ean:r[0],n:r[1].toLowerCase(),m:(r[2]||"").toLowerCase(),p:r[3],x:r[4]||null,s:strip(r[1]+" "+(r[2]||""))}));
+const byEan=Object.create(null);items.forEach(it=>{byEan[it.ean]=it});
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function btn(txt,cls,fn){const b=el("button","btn "+(cls||""),txt);b.type="button";b.onclick=fn;return b}
+
+function filas(it){
+ const pm=D.promos[it.ean]||{},out=[];
+ it.p.forEach((pr,i)=>{
+  if(pr==null)return;
+  let eff=pr,pro=null;const x=pm[String(i)];
+  if(x&&x[0]<pr&&vigente(x[1])){eff=x[0];pro=x}
+  out.push({i,pr,eff,pro,mx:(it.x&&it.x[i])||0});
+ });
+ return out.sort((a,b)=>a.eff-b.eff);
+}
+/* descuentos vigentes: se calcula contra el precio de lista más bajo de esa cadena */
+const OFF=[];
+for(const ean in D.promos){
+ const it=byEan[ean];if(!it)continue;const pm=D.promos[ean];
+ for(const k in pm){
+  const i=+k,pr=it.p[i],x=pm[k];
+  if(pr==null||!(x[0]<pr)||pr<500||!vigente(x[1]))continue;
+  const pct=(pr-x[0])/pr*100;
+  if(pct<5||pct>70)continue;
+  OFF.push({it,i,pr,pm:x[0],pct,ah:pr-x[0],leg:x[1]});
+ }
+}
+OFF.sort((a,b)=>b.pct-a.pct);
+
+let vista="buscar",shown=30,tmr,ofCh=-1,ofSort="pct",rkTab="suben";
+let cart={};
+try{cart=JSON.parse(localStorage.getItem("pt_cart")||"{}")||{}}catch(e){cart={}}
+function saveCart(){
+ try{localStorage.setItem("pt_cart",JSON.stringify(cart))}catch(e){}
+ const n=Object.values(cart).reduce((a,b)=>a+b,0);
+ $("cn").textContent=n;$("cn").hidden=!n;
+}
+function addCart(ean,b){cart[ean]=(cart[ean]||0)+1;saveCart();if(b){b.textContent="✓ En el carrito ("+cart[ean]+")"}}
+
+/* ---------- tarjetas ---------- */
+function compareCard(it,f){
+ const c=el("article","card");
+ c.appendChild(el("div","nm",it.n));
+ if(it.m&&it.m!=="sin marca")c.appendChild(el("div","br",it.m));
+ const rows=el("div","rows"),max=f[f.length-1].eff;
+ f.forEach((r,k)=>{
+  const d=el("div","r"+(k===0&&f.length>1?" best":""));
+  const a=el("div","cn",nm(r.i));
+  if(r.pro){const h=hasta(r.pro[1]);a.appendChild(el("span","tag","Promo"+(h?" hasta "+h:"")))}
+  const t=el("div","tr"),b=el("i");b.style.width=Math.max(8,r.eff/max*100)+"%";t.appendChild(b);
+  const p=el("div","pr",money(r.eff));
+  if(r.pro)p.insertBefore(el("s",null,money(r.pr)),p.firstChild);
+  else if(r.mx>r.pr)p.appendChild(el("span","rg","hasta "+money(r.mx)));
+  d.append(a,t,p);rows.appendChild(d);
+ });
+ c.appendChild(rows);
+ if(f.length>1){const dif=max-f[0].eff;if(dif>0)c.appendChild(el("div","save","Ahorrás "+money(dif)+" ("+Math.round(dif/max*100)+"%) frente a la más cara"))}
+ else c.appendChild(el("div","solo","Solo informado en "+nm(f[0].i)+"."));
+ const ab=btn("","line wide",null);
+ const lab=()=>{const n=cart[it.ean]||0;ab.textContent=n?"✓ En el carrito ("+n+") · sumar otro":"+ Agregar al carrito"};
+ lab();ab.onclick=()=>{cart[it.ean]=(cart[it.ean]||0)+1;saveCart();lab()};
+ c.appendChild(ab);return c;
+}
+function offerCard(o,mini){
+ const c=el("article","card offer");
+ const b=el("div","badge","−"+Math.round(o.pct)+"%");b.appendChild(el("small",null,"descuento"));
+ const body=el("div");body.style.minWidth="0";
+ body.appendChild(el("div","nm",o.it.n));
+ const h=hasta(o.leg);
+ body.appendChild(el("div","meta",nm(o.i)+(h?" · hasta el "+h:"")));
+ const now=el("div","now",money(o.pm));now.appendChild(el("s",null,money(o.pr)));body.appendChild(now);
+ body.appendChild(el("div","sv","Ahorrás "+money(o.ah)));
+ if(!mini){
+  const a=el("div","acts");
+  a.appendChild(btn("Comparar","",()=>{$("q").value=o.it.n;shown=30;go("buscar")}));
+  const ab=btn("+ Carrito","pri",null);ab.onclick=()=>addCart(o.it.ean,ab);a.appendChild(ab);
+  body.appendChild(a);
+ }
+ c.append(b,body);return c;
+}
+
+/* ---------- vistas ---------- */
+function vBuscar(out){
+ const q=strip($("q").value).trim(),tk=q.split(/\s+/).filter(Boolean);
+ if(q.length<2){
+  out.appendChild(el("h2","sec","Precios de supermercados en Tucumán"));
+  out.appendChild(el("p","lead","Un mismo producto comparado en "+CH.length+" cadenas, con datos oficiales de Precios Claros."));
+  const st=el("div","card");st.appendChild((()=>{const s=el("div","stat");
+   [[items.length.toLocaleString("es-AR"),"productos"],[String(CH.length),"cadenas"],[OFF.length.toLocaleString("es-AR"),"descuentos vigentes"]].forEach(a=>{const d=el("div");d.appendChild(el("b",null,a[0]));d.appendChild(el("span",null,a[1]));s.appendChild(d)});return s})());
+  out.appendChild(st);
+  if(OFF.length){
+   out.appendChild(el("h2","sec","Mejores descuentos"));
+   out.appendChild(el("p","lead","Los más grandes entre los vigentes."));
+   const l=el("div","list");OFF.slice(0,4).forEach(o=>l.appendChild(offerCard(o,true)));out.appendChild(l);
+   out.appendChild(btn("Ver todos los descuentos","pri wide",()=>go("ofertas")));
+  }
+  out.appendChild(el("h2","sec","Probá buscando"));
+  const w=el("div","wrapchips");
+  ["yerba","leche","aceite","azúcar","fideos","harina","arroz","gaseosa","café","galletitas"].forEach(s=>{const b=el("button","chip",s);b.type="button";b.onclick=()=>{$("q").value=s;shown=30;render()};w.appendChild(b)});
+  out.appendChild(w);
+  const R=D.ranking;
+  if(R){
+   out.appendChild(el("h2","sec","Cambios de precio"));
+   out.appendChild(el("p","lead","Entre el "+R.desde+" y el "+R.hasta+" cambiaron más de 1% "+R.cambiaron.toLocaleString("es-AR")+" de "+R.n.toLocaleString("es-AR")+" productos comparados."));
+   out.appendChild(btn("Ver subas y bajas","wide",()=>go("precios")));
+  }
+  return;
+ }
+ let res=[];
+ for(const it of items){
+  if(!tk.every(t=>it.s.indexOf(t)>=0))continue;
+  const f=filas(it);if(!f.length)continue;
+  res.push({it,f,sc:(it.s.indexOf(tk[0])===0?1000:0)+f.length*10-it.n.length/100});
+ }
+ res.sort((a,b)=>b.sc-a.sc);
+ out.appendChild(el("p","lead",res.length.toLocaleString("es-AR")+(res.length===1?" resultado":" resultados")));
+ const bar=el("div","seg");
+ [["rel","Relevantes"],["asc","Menor precio"],["desc","Mayor precio"],["az","A–Z"]].forEach(a=>{
+  const b=btn(a[1],buscarOrd===a[0]?"on":"",()=>{buscarOrd=a[0];shown=30;render()});bar.appendChild(b)});
+ if(res.length>1)out.appendChild(bar);
+ if(buscarOrd==="asc")res.sort((a,b)=>a.f[0].eff-b.f[0].eff);
+ else if(buscarOrd==="desc")res.sort((a,b)=>b.f[0].eff-a.f[0].eff);
+ else if(buscarOrd==="az")res.sort((a,b)=>a.it.n.localeCompare(b.it.n,"es"));
+ if(!res.length){out.appendChild(el("p","empty","No encontramos “"+$("q").value.trim()+"”. Probá con una sola palabra, por ejemplo la marca o el tipo de producto."));return}
+ const l=el("div","list");res.slice(0,shown).forEach(r=>l.appendChild(compareCard(r.it,r.f)));out.appendChild(l);
+ if(res.length>shown)out.appendChild(btn("Mostrar más","wide",()=>{shown+=30;render()}));
+}
+let buscarOrd="rel";
+
+function vOfertas(out){
+ out.appendChild(el("h2","sec","Mejores descuentos"));
+ out.appendChild(el("p","lead",OFF.length.toLocaleString("es-AR")+" descuentos vigentes informados por las cadenas de Tucumán."));
+ const cnt=CH.map((_,i)=>OFF.filter(o=>o.i===i).length);
+ const ch=el("div","chips");
+ const mk=(label,idx)=>{const b=el("button","chip"+(ofCh===idx?" on":""),label);b.type="button";b.onclick=()=>{ofCh=idx;shown=30;render()};ch.appendChild(b)};
+ mk("Todas ("+OFF.length+")",-1);
+ CH.forEach((_,i)=>{if(cnt[i])mk(nm(i)+" ("+cnt[i]+")",i)});
+ out.appendChild(ch);
+ const sg=el("div","seg");
+ sg.appendChild(btn("Mayor descuento %",ofSort==="pct"?"on":"",()=>{ofSort="pct";shown=30;render()}));
+ sg.appendChild(btn("Mayor ahorro $",ofSort==="ah"?"on":"",()=>{ofSort="ah";shown=30;render()}));
+ out.appendChild(sg);
+ let L=OFF.filter(o=>ofCh<0||o.i===ofCh);
+ L=L.slice().sort((a,b)=>ofSort==="pct"?b.pct-a.pct:b.ah-a.ah);
+ if(!L.length){out.appendChild(el("p","empty","No hay descuentos vigentes para esta cadena."));return}
+ const l=el("div","list");L.slice(0,shown).forEach(o=>l.appendChild(offerCard(o,false)));out.appendChild(l);
+ if(L.length>shown)out.appendChild(btn("Mostrar más","wide",()=>{shown+=30;render()}));
+ out.appendChild(el("p","note","El descuento se calcula sobre el precio de lista más bajo que informa la cadena en Tucumán. No se muestran descuentos de más de 70%, por posible error de carga. Confirmá el precio en el local."));
+}
+
+function vPrecios(out){
+ const R=D.ranking;
+ out.appendChild(el("h2","sec","Subas y bajas"));
+ if(!R){out.appendChild(el("p","empty","Todavía no hay comparación. Se activa cuando hay datos de dos fechas."));return}
+ out.appendChild(el("p","lead","Entre el "+R.desde+" y el "+R.hasta+". Se compararon "+R.n.toLocaleString("es-AR")+" productos presentes en 3 o más cadenas; "+R.cambiaron.toLocaleString("es-AR")+" cambiaron más de 1%."));
+ const sg=el("div","seg");
+ sg.appendChild(btn("Más subieron",rkTab==="suben"?"on":"",()=>{rkTab="suben";render()}));
+ sg.appendChild(btn("Más bajaron",rkTab==="bajan"?"on":"",()=>{rkTab="bajan";render()}));
+ out.appendChild(sg);
+ const l=el("div","list");
+ (R[rkTab]||[]).slice(0,30).forEach(x=>{
+  const c=el("article","card"),up=x[2]>0;
+  c.appendChild(el("div","nm",x[1].toLowerCase()));
+  c.appendChild(el("div","rk "+(up?"up":"dn"),(up?"+":"")+pc(x[2])+"%"));
+  c.appendChild(el("div","note","Mejor precio: "+money(x[3])+" → "+money(x[4])+" · cambio mediano en "+x[5]+" cadenas"));
+  c.appendChild(btn("Ver precios por cadena","line wide",()=>{$("q").value=x[1].toLowerCase();shown=30;go("buscar")}));
+  l.appendChild(c);
+ });
+ out.appendChild(l);
+ out.appendChild(el("p","note","Cambio mediano entre cadenas, con precios de lista. Puede deberse a sucursales o promociones. Se descartan cambios de más de 40% por posible error de carga."));
+}
+
+function vCarrito(out){
+ out.appendChild(el("h2","sec","Mi carrito"));
+ const ids=Object.keys(cart).filter(e=>cart[e]>0&&byEan[e]);
+ if(!ids.length){out.appendChild(el("p","empty","Tu carrito está vacío. Buscá un producto y tocá “Agregar al carrito”."));return}
+ const L=ids.map(e=>({it:byEan[e],qty:cart[e],f:filas(byEan[e])})).filter(x=>x.f.length);
+ const lst=el("div","card");
+ L.forEach(x=>{
+  const r=el("div","li");r.appendChild(el("span",null,x.it.n));
+  const m=el("button","qb","−");m.type="button";m.setAttribute("aria-label","Quitar uno");
+  m.onclick=()=>{cart[x.it.ean]--;if(cart[x.it.ean]<=0)delete cart[x.it.ean];saveCart();render()};
+  const p=el("button","qb","+");p.type="button";p.setAttribute("aria-label","Sumar uno");
+  p.onclick=()=>{cart[x.it.ean]++;saveCart();render()};
+  r.append(m,el("b","qn",String(x.qty)),p);lst.appendChild(r);
+ });
+ out.appendChild(lst);
+ const tot=CH.map((_,i)=>{let s=0,falta=0;L.forEach(x=>{const r=x.f.find(y=>y.i===i);if(r)s+=r.eff*x.qty;else falta++});return{i,s,falta}});
+ const comp=tot.filter(t=>t.falta===0).sort((a,b)=>a.s-b.s);
+ const c1=el("div","card");c1.style.marginTop="12px";
+ c1.appendChild(el("h2","sec","Todo en un solo lugar"));
+ if(comp.length){
+  const rows=el("div","rows"),max=comp[comp.length-1].s;
+  comp.forEach((t,k)=>{
+   const d=el("div","r"+(k===0&&comp.length>1?" best":""));
+   d.appendChild(el("div","cn",nm(t.i)));
+   const tr=el("div","tr"),b=el("i");b.style.width=Math.max(8,t.s/max*100)+"%";tr.appendChild(b);
+   d.append(tr,el("div","pr",money(t.s)));rows.appendChild(d);
+  });
+  c1.appendChild(rows);
+  if(comp.length>1){const d=max-comp[0].s;if(d>0)c1.appendChild(el("div","save","Ahorrás "+money(d)+" ("+Math.round(d/max*100)+"%) frente a la más cara"))}
+ }else c1.appendChild(el("div","solo","Ninguna cadena tiene todos los productos de tu lista."));
+ const par=tot.filter(t=>t.falta>0&&t.falta<L.length).sort((a,b)=>a.falta-b.falta);
+ if(par.length)c1.appendChild(el("div","note","Con faltantes: "+par.map(t=>nm(t.i)+" (no informa "+t.falta+")").join(", ")+"."));
+ out.appendChild(c1);
+ let mix=0;const plan=[];
+ L.forEach(x=>{const b=x.f[0];mix+=b.eff*x.qty;plan.push([x.qty+" × "+x.it.n+" → "+nm(b.i),money(b.eff*x.qty)])});
+ const c2=el("div","card");c2.style.marginTop="12px";
+ c2.appendChild(el("h2","sec","Cada cosa donde está más barata"));
+ const pl=el("div","plan");plan.forEach(a=>{pl.appendChild(el("span",null,a[0]));pl.appendChild(el("span",null,a[1]))});
+ c2.appendChild(pl);
+ c2.appendChild(el("div","save","Total: "+money(mix)+(comp.length&&mix<comp[0].s?" · "+money(comp[0].s-mix)+" menos que en un solo lugar":"")));
+ c2.appendChild(el("div","note","Implica ir a varias cadenas. Evaluá si el ahorro compensa el traslado."));
+ out.appendChild(c2);
+ const act=el("div","acts");
+ const cp=btn("Copiar lista","",null);
+ cp.onclick=()=>{
+  const tx="Mi lista de compras (datos al "+D.fecha+")\n"+plan.map(a=>"• "+a[0]+" "+a[1]).join("\n")+"\nTotal: "+money(mix);
+  try{navigator.clipboard.writeText(tx).then(()=>{cp.textContent="¡Copiada!"},()=>{cp.textContent="No se pudo copiar"})}catch(e){cp.textContent="No se pudo copiar"}
+ };
+ act.append(cp,btn("Vaciar carrito","",()=>{cart={};saveCart();render()}));
+ out.appendChild(act);
+}
+
+/* ---------- navegación ---------- */
+const VISTAS={buscar:vBuscar,ofertas:vOfertas,precios:vPrecios,carrito:vCarrito};
+function render(){
+ const out=$("out");out.textContent="";
+ VISTAS[vista](out);
+ document.querySelectorAll("nav.tabbar button").forEach(b=>{const on=b.dataset.v===vista;b.classList.toggle("on",on);if(on)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+}
+function go(v){
+ if(!VISTAS[v])v="buscar";
+ const cambio=v!==vista;vista=v;shown=30;
+ try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v)}catch(e){}
+ render();if(cambio)window.scrollTo(0,0);
+}
+document.querySelectorAll("nav.tabbar button").forEach(b=>{b.onclick=()=>go(b.dataset.v)});
+$("q").addEventListener("input",()=>{clearTimeout(tmr);tmr=setTimeout(()=>{if(vista!=="buscar"){go("buscar")}else{shown=30;render()}},150)});
+window.addEventListener("hashchange",()=>{const v=location.hash.slice(1);if(v!==vista)go(v)});
+$("fch").textContent="Datos al "+D.fecha;
+saveCart();
+const h0=location.hash.slice(1);
+vista=VISTAS[h0]?h0:"buscar";
+render();
+
+}).catch(e=>{document.getElementById("out").textContent="No se pudieron cargar los datos. Probá de nuevo en un rato."});
+</script>
+</body></html>
