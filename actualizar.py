@@ -1,6 +1,7 @@
 """Tucumán Ahorra: baja la base SEPA más reciente, filtra Tucumán y genera sepa_tucuman.json.
 Sirve igual en Colab y en GitHub Actions. Si existe la carpeta plantillas/, también arma la web en docs/."""
-import io, json, os, re, sys, time, zipfile
+import glob, gzip, io, json, os, re, statistics, sys, time, zipfile
+from datetime import datetime
 from email.utils import parsedate_to_datetime
 import pandas as pd
 import requests
@@ -132,6 +133,74 @@ def a_json(P, fecha, salida):
     return out
 
 
+def a_fecha(s):
+    return datetime.strptime(s, "%d/%m/%Y")
+
+
+def ranking(out, prev):
+    """Compara los precios actuales con un snapshot anterior (mediana del cambio entre cadenas)."""
+    chains, pc = out["cadenas"], prev["cadenas"]
+    idx = [(i, pc.index(c)) for i, c in enumerate(chains) if c in pc]
+    res, todos_med = [], []
+    for r in out["productos"]:
+        po = prev["p"].get(r[0])
+        if not po:
+            continue
+        ch, antes, ahora = [], [], []
+        for i, j in idx:
+            a, b = po[j], r[3][i]
+            if a and b:
+                ch.append((b - a) / a * 100)
+                antes.append(a)
+                ahora.append(b)
+        if len(ch) < 3:
+            continue
+        med = statistics.median(ch)
+        todos_med.append(med)
+        if abs(med) < 1 or abs(med) > 40:  # sin cambio real o posible error de carga
+            continue
+        res.append([r[0], r[1], round(med, 1), min(antes), min(ahora), len(ch)])
+    if not todos_med:
+        return None
+    todos = statistics.median(todos_med)
+    suben = sorted([x for x in res if x[2] > 0], key=lambda x: -x[2])[:60]
+    bajan = sorted([x for x in res if x[2] < 0], key=lambda x: x[2])[:60]
+    return {"desde": prev["fecha"], "hasta": out["fecha"], "n": len(todos_med), "cambiaron": len(res),
+            "mediana": round(todos, 2), "suben": suben, "bajan": bajan}
+
+
+def completar_historial(out, salida, carpeta="historial", max_snap=10):
+    """Guarda el snapshot de hoy y calcula el ranking contra el de hace ~7 días."""
+    os.makedirs(carpeta, exist_ok=True)
+    hoy = a_fecha(out["fecha"])
+    snaps = []
+    for f in glob.glob(os.path.join(carpeta, "*.json.gz")) + glob.glob("*.json.gz"):
+        try:
+            with gzip.open(f, "rt", encoding="utf-8") as fh:
+                s = json.load(fh)
+            snaps.append((a_fecha(s["fecha"]), s, f))
+        except Exception:
+            pass
+    previos = [x for x in snaps if x[0] < hoy]
+    if previos:
+        # el más cercano a 7 días antes; si no hay, el más viejo
+        ref = min(previos, key=lambda x: abs((hoy - x[0]).days - 7))
+        out["ranking"] = ranking(out, ref[1])
+        print("Ranking contra", ref[1]["fecha"], "->", (out["ranking"] or {}).get("n"), "productos")
+    else:
+        out["ranking"] = None
+        print("Sin snapshot anterior: el ranking empieza cuando haya dos fechas.")
+    snap = {"fecha": out["fecha"], "cadenas": out["cadenas"], "p": {r[0]: r[3] for r in out["productos"]}}
+    nombre = os.path.join(carpeta, hoy.strftime("%Y-%m-%d") + ".json.gz")
+    with gzip.open(nombre, "wt", encoding="utf-8") as fh:
+        json.dump(snap, fh, separators=(",", ":"))
+    for _, _, f in sorted(snaps, key=lambda x: x[0])[:-(max_snap - 1)] if len(snaps) >= max_snap else []:
+        os.remove(f)
+    with open(salida, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    print("Snapshot guardado:", nombre)
+
+
 def armar_web(salida_json):
     """Inyecta los datos en las plantillas y deja todo en docs/ (GitHub Pages)."""
     if not os.path.isdir("plantillas"):
@@ -156,7 +225,8 @@ if __name__ == "__main__":
     print("Se usa:", dia)
     descargar(dia, "sepa.zip")
     P, fecha = procesar("sepa.zip")
-    a_json(P, fecha, salida)
+    out = a_json(P, fecha, salida)
+    completar_historial(out, salida)
     armar_web(salida)
     try:
         from google.colab import files
