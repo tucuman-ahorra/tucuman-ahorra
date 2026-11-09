@@ -140,7 +140,7 @@ const RH=/hasta(?: el)? (\d{1,2})\/(\d{1,2})\/(\d{4})/i,RD=/desde(?: el)? (\d{1,
 const fd=(re,l)=>{const m=re.exec(l||"");return m?new Date(+m[3],+m[2]-1,+m[1]):null};
 const vigente=l=>{const h=fd(RH,l),d=fd(RD,l);return(!h||h>=hoy)&&(!d||d<=hoy)};
 const hasta=l=>{const m=RH.exec(l||"");return m?m[1]+"/"+m[2]:""};
-const items=D.productos.map(r=>({ean:r[0],n:r[1].toLowerCase(),m:(r[2]||"").toLowerCase(),p:r[3],x:r[4]||null,s:strip(r[1]+" "+(r[2]||""))}));
+const items=D.productos.map(r=>({ean:r[0],n:r[1].toLowerCase(),m:(r[2]||"").toLowerCase(),p:r[3],x:r[4]||null,s:strip(r[1]+" "+(r[2]||"")),sc:r[5]||"otr"}));
 const byEan=Object.create(null);items.forEach(it=>{byEan[it.ean]=it});
 function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function btn(txt,cls,fn){const b=el("button","btn "+(cls||""),txt);b.type="button";b.onclick=fn;return b}
@@ -169,7 +169,18 @@ for(const ean in D.promos){
 }
 OFF.sort((a,b)=>b.pct-a.pct);
 
-let vista="buscar",shown=30,tmr,ofCh=-1,ofSort="pct",rkTab="suben";
+const SECN={alm:"Almacén",beb:"Bebidas",alc:"Vinos y alcohol",lac:"Lácteos y fiambres",car:"Carnes y congelados",fru:"Frutas y verduras",sna:"Snacks y golosinas",lim:"Limpieza",hig:"Perfumería e higiene",bby:"Bebés",mas:"Mascotas",ele:"Electro y tecnología",hog:"Hogar y bazar",dec:"Decoración y fiestas",fer:"Ferretería y auto",jug:"Juguetes y librería",rop:"Ropa y calzado",otr:"Otros"};
+let vista="buscar",shown=30,tmr,ofCh=-1,ofSort="pct",rkTab="suben",rkOrd="may",sec="todos";
+const secOf=e=>(byEan[e]&&byEan[e].sc)||"otr";
+/* chips de sector: counts = {codigo:cantidad} */
+function secChips(out,counts,tot){
+ const w=el("div","chips");
+ const mk=(label,k)=>{const b=el("button","chip"+(sec===k?" on":""),label);b.type="button";b.onclick=()=>{sec=k;shown=30;render()};w.appendChild(b)};
+ mk("Todos los sectores ("+tot.toLocaleString("es-AR")+")","todos");
+ Object.keys(SECN).filter(k=>counts[k]).sort((a,b)=>counts[b]-counts[a]).forEach(k=>mk(SECN[k]+" ("+counts[k].toLocaleString("es-AR")+")",k));
+ out.appendChild(w);
+}
+const cuentaSec=arr=>{const c={};arr.forEach(k=>{c[k]=(c[k]||0)+1});return c};
 let cart={};
 try{cart=JSON.parse(localStorage.getItem("pt_cart")||"{}")||{}}catch(e){cart={}}
 function saveCart(){
@@ -224,7 +235,7 @@ function offerCard(o,mini){
 /* ---------- vistas ---------- */
 function vBuscar(out){
  const q=strip($("q").value).trim(),tk=q.split(/\s+/).filter(Boolean);
- if(q.length<2){
+ if(q.length<2&&sec==="todos"){
   out.appendChild(el("h2","sec","Precios de supermercados en Tucumán"));
   out.appendChild(el("p","lead","Un mismo producto comparado en "+CH.length+" cadenas, con datos oficiales de Precios Claros."));
   const st=el("div","card");st.appendChild((()=>{const s=el("div","stat");
@@ -236,6 +247,8 @@ function vBuscar(out){
    const l=el("div","list");OFF.slice(0,4).forEach(o=>l.appendChild(offerCard(o,true)));out.appendChild(l);
    out.appendChild(btn("Ver todos los descuentos","pri wide",()=>go("ofertas")));
   }
+  out.appendChild(el("h2","sec","Explorar por sector"));
+  const ws=el("div","chips");Object.keys(SECN).filter(k=>k!=="otr").forEach(k=>{const b=el("button","chip",SECN[k]);b.type="button";b.onclick=()=>{sec=k;shown=30;render()};ws.appendChild(b)});out.appendChild(ws);
   out.appendChild(el("h2","sec","Probá buscando"));
   const w=el("div","wrapchips");
   ["yerba","leche","aceite","azúcar","fideos","harina","arroz","gaseosa","café","galletitas"].forEach(s=>{const b=el("button","chip",s);b.type="button";b.onclick=()=>{$("q").value=s;shown=30;render()};w.appendChild(b)});
@@ -248,14 +261,17 @@ function vBuscar(out){
   }
   return;
  }
- let res=[];
+ let res=[],cs={},totq=0;
  for(const it of items){
-  if(!tk.every(t=>it.s.indexOf(t)>=0))continue;
+  if(q.length>=2&&!tk.every(t=>it.s.indexOf(t)>=0))continue;
   const f=filas(it);if(!f.length)continue;
-  res.push({it,f,sc:(it.s.indexOf(tk[0])===0?1000:0)+f.length*10-it.n.length/100});
+  cs[it.sc]=(cs[it.sc]||0)+1;totq++;
+  if(sec!=="todos"&&it.sc!==sec)continue;
+  res.push({it,f,sc:(tk.length&&it.s.indexOf(tk[0])===0?1000:0)+f.length*10-it.n.length/100});
  }
+ secChips(out,cs,totq);
  res.sort((a,b)=>b.sc-a.sc);
- out.appendChild(el("p","lead",res.length.toLocaleString("es-AR")+(res.length===1?" resultado":" resultados")));
+ out.appendChild(el("p","lead",res.length.toLocaleString("es-AR")+(res.length===1?" resultado":" resultados")+(sec!=="todos"?" en "+SECN[sec]:"")));
  const bar=el("div","seg");
  [["rel","Relevantes"],["asc","Menor precio"],["desc","Mayor precio"],["az","A–Z"]].forEach(a=>{
   const b=btn(a[1],buscarOrd===a[0]?"on":"",()=>{buscarOrd=a[0];shown=30;render()});bar.appendChild(b)});
@@ -278,12 +294,14 @@ function vOfertas(out){
  mk("Todas ("+OFF.length+")",-1);
  CH.forEach((_,i)=>{if(cnt[i])mk(nm(i)+" ("+cnt[i]+")",i)});
  out.appendChild(ch);
+ secChips(out,cuentaSec(OFF.filter(o=>ofCh<0||o.i===ofCh).map(o=>o.it.sc)),OFF.filter(o=>ofCh<0||o.i===ofCh).length);
  const sg=el("div","seg");
  sg.appendChild(btn("Mayor descuento %",ofSort==="pct"?"on":"",()=>{ofSort="pct";shown=30;render()}));
  sg.appendChild(btn("Mayor ahorro $",ofSort==="ah"?"on":"",()=>{ofSort="ah";shown=30;render()}));
+ sg.appendChild(btn("Menor descuento %",ofSort==="pmin"?"on":"",()=>{ofSort="pmin";shown=30;render()}));
  out.appendChild(sg);
- let L=OFF.filter(o=>ofCh<0||o.i===ofCh);
- L=L.slice().sort((a,b)=>ofSort==="pct"?b.pct-a.pct:b.ah-a.ah);
+ let L=OFF.filter(o=>(ofCh<0||o.i===ofCh)&&(sec==="todos"||o.it.sc===sec));
+ L=L.slice().sort((a,b)=>ofSort==="pct"?b.pct-a.pct:ofSort==="pmin"?a.pct-b.pct:b.ah-a.ah);
  if(!L.length){out.appendChild(el("p","empty","No hay descuentos vigentes para esta cadena."));return}
  const l=el("div","list");L.slice(0,shown).forEach(o=>l.appendChild(offerCard(o,false)));out.appendChild(l);
  if(L.length>shown)out.appendChild(btn("Mostrar más","wide",()=>{shown+=30;render()}));
@@ -296,11 +314,19 @@ function vPrecios(out){
  if(!R){out.appendChild(el("p","empty","Todavía no hay comparación. Se activa cuando hay datos de dos fechas."));return}
  out.appendChild(el("p","lead","Entre el "+R.desde+" y el "+R.hasta+". Se compararon "+R.n.toLocaleString("es-AR")+" productos presentes en 3 o más cadenas; "+R.cambiaron.toLocaleString("es-AR")+" cambiaron más de 1%."));
  const sg=el("div","seg");
- sg.appendChild(btn("Más subieron",rkTab==="suben"?"on":"",()=>{rkTab="suben";render()}));
- sg.appendChild(btn("Más bajaron",rkTab==="bajan"?"on":"",()=>{rkTab="bajan";render()}));
+ sg.appendChild(btn("Suben",rkTab==="suben"?"on":"",()=>{rkTab="suben";shown=30;render()}));
+ sg.appendChild(btn("Bajan",rkTab==="bajan"?"on":"",()=>{rkTab="bajan";shown=30;render()}));
  out.appendChild(sg);
+ const sg2=el("div","seg");
+ sg2.appendChild(btn(rkTab==="suben"?"Mayor suba":"Mayor baja",rkOrd==="may"?"on":"",()=>{rkOrd="may";shown=30;render()}));
+ sg2.appendChild(btn(rkTab==="suben"?"Menor suba":"Menor baja",rkOrd==="men"?"on":"",()=>{rkOrd="men";shown=30;render()}));
+ out.appendChild(sg2);
+ const base=R[rkTab]||[];
+ secChips(out,cuentaSec(base.map(x=>secOf(x[0]))),base.length);
+ let LR=base.filter(x=>sec==="todos"||secOf(x[0])===sec).slice().sort((a,b)=>rkOrd==="may"?Math.abs(b[2])-Math.abs(a[2]):Math.abs(a[2])-Math.abs(b[2]));
+ if(!LR.length)out.appendChild(el("p","empty","No hay productos en este sector."));
  const l=el("div","list");
- (R[rkTab]||[]).slice(0,30).forEach(x=>{
+ LR.slice(0,shown).forEach(x=>{
   const c=el("article","card"),up=x[2]>0;
   c.appendChild(el("div","nm",x[1].toLowerCase()));
   c.appendChild(el("div","rk "+(up?"up":"dn"),(up?"+":"")+pc(x[2])+"%"));
@@ -309,6 +335,7 @@ function vPrecios(out){
   l.appendChild(c);
  });
  out.appendChild(l);
+ if(LR.length>shown)out.appendChild(btn("Mostrar más","wide",()=>{shown+=30;render()}));
  out.appendChild(el("p","note","Cambio mediano entre cadenas, con precios de lista. Puede deberse a sucursales o promociones. Se descartan cambios de más de 40% por posible error de carga."));
 }
 
@@ -373,7 +400,7 @@ function render(){
 }
 function go(v){
  if(!VISTAS[v])v="buscar";
- const cambio=v!==vista;vista=v;shown=30;
+ const cambio=v!==vista;vista=v;shown=30;if(cambio)sec="todos";
  try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v)}catch(e){}
  render();if(cambio)window.scrollTo(0,0);
 }
