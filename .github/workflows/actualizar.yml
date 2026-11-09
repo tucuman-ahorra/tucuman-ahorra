@@ -1,0 +1,23 @@
+name: Actualizar precios
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas requests
+      - run: python actualizar.py
+      - name: Guardar resultado
+        run: |
+          rm -f sepa.zip
+          git config user.name "actualizador"
+          git config user.email "actions@users.noreply.github.com"
+          git add sepa_tucuman.json
+          git diff --cached --quiet || (git commit -m "Actualizar precios" && git push)
