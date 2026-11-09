@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tucumán Ahorra · Generador de imágenes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f9;--card:#fff;--ink:#12202b;--mute:#566673;--line:#d9e3ea;--acc:#0b5fa5;--ok:#0b7a43;--okbg:#dcf3e6;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1922;--card:#15242e;--ink:#e8f0f5;--mute:#94a7b5;--line:#263a47;--acc:#6db6ee;--ok:#55d08a;--okbg:#143a29}}
+:root[data-theme="dark"]{--bg:#0d1922;--card:#15242e;--ink:#e8f0f5;--mute:#94a7b5;--line:#263a47;--acc:#6db6ee;--ok:#55d08a;--okbg:#143a29}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:14px 14px 40px}
+h1{font:800 1.8rem/1.05 "Bricolage Grotesque",system-ui,sans-serif;margin:6px 0 2px;letter-spacing:-.02em}
+h2{font:800 1.05rem "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 10px}
+.sub{margin:0 0 12px;color:var(--mute);font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+label{display:block;font-size:.82rem;color:var(--mute);margin:10px 0 4px}
+label:first-child{margin-top:0}
+input[type=text],input[type=search],select{width:100%;font:inherit;padding:11px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);-webkit-appearance:none;appearance:none}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 40%}
+[hidden]{display:none!important}
+.seg button,.btn{flex:1;font:inherit;font-weight:600;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--mute);cursor:pointer}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+.btn{background:var(--acc);border-color:var(--acc);color:var(--bg);width:100%;margin-top:10px}
+.res{margin-top:8px;display:grid;gap:6px}
+.it{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:.88rem}
+.it span{text-transform:capitalize;line-height:1.2}
+.it small{display:block;color:var(--mute);text-transform:none}
+.add,.qb{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;min-width:36px;height:36px;font:inherit;font-size:1.05rem;cursor:pointer}
+.sel{display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+.sel:last-child{border:0}
+.sel span{text-transform:capitalize;line-height:1.2}
+#prev{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}
+.msg{color:var(--mute);font-size:.85rem;margin:8px 0 0}
+.note{color:var(--mute);font-size:.82rem;margin:0 0 8px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Tucumán Ahorra</h1>
+<p class="sub">Generador de imágenes para el Canal · Datos al <b id="fch"></b></p>
+
+<section class="card">
+ <label>Estilo</label>
+ <div class="seg"><button id="m1" class="on" type="button">Un producto</button><button id="m2" type="button">Canasta</button><button id="m3" type="button">Descuentos</button><button id="m4" type="button">Subas y bajas</button></div>
+ <div id="subw" hidden><label for="sub">Mostrar</label><select id="sub"></select></div>
+ <label for="fmt">Formato</label>
+ <select id="fmt"><option value="sq">Cuadrado · 1080×1080</option><option value="v" selected>Vertical · 1080×1350</option><option value="st">Historia · 1080×1920</option></select>
+ <label for="ttl">Título</label>
+ <input id="ttl" type="text" maxlength="60">
+ <label for="ftx">Enlace o usuario en el pie (opcional)</label>
+ <input id="ftx" type="text" maxlength="60" placeholder="tuenlace.com o @tucanal">
+</section>
+
+<section class="card" id="prodcard">
+ <h2>Productos</h2>
+ <p class="note" id="hint"></p>
+ <input id="q" type="search" placeholder="Buscá: yerba, leche, aceite…" autocomplete="off" aria-label="Buscar producto">
+ <div class="res" id="res"></div>
+ <div id="sel" style="margin-top:8px"></div>
+</section>
+
+<section class="card">
+ <h2>Vista previa</h2>
+ <img id="prev" alt="Vista previa de la imagen">
+ <button class="btn" id="dl" type="button">Descargar imagen (PNG)</button>
+ <p class="msg" id="msg"></p>
+</section>
+
+<section class="card">
+ <h2>Datos</h2>
+ <p class="note">Ya incluye los datos del <b id="fch2"></b>. Cuando tengas un archivo nuevo, cargalo acá y las imágenes usan esos precios.</p>
+ <input id="jf" type="file" accept=".json,application/json" aria-label="Cargar archivo de datos">
+ <p class="msg" id="msg2"></p>
+</section>
+</div>
+
+<script>
+fetch("sepa_tucuman.json",{cache:"no-cache"}).then(r=>r.json()).then(D=>{
+const $=id=>document.getElementById(id);
+const FD='"Bricolage Grotesque",system-ui,sans-serif',FB='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+const FORMS={sq:[1080,1080],v:[1080,1350],st:[1080,1920]};
+const NOM={"Changomas":"Changomás","HiperChangomas":"HiperChangomás","Hipermercado Carrefour":"Carrefour","Market":"Carrefour Market","La Anonima":"La Anónima"};
+const strip=s=>String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const money=n=>"$"+Math.round(n).toLocaleString("es-AR");
+const RE=/hasta(?: el)? (\d{1,2})\/(\d{1,2})\/(\d{4})/i;
+const hoy=new Date();hoy.setHours(0,0,0,0);
+const RD=/desde(?: el)? (\d{1,2})\/(\d{1,2})\/(\d{4})/i;
+const fdt=(re,l)=>{const m=re.exec(l||"");return m?new Date(+m[3],+m[2]-1,+m[1]):null};
+const vigente=l=>{const h=fdt(RE,l),d=fdt(RD,l);return(!h||h>=hoy)&&(!d||d<=hoy)};
+const hasta=l=>{const m=RE.exec(l||"");return m?m[1]+"/"+m[2]:""};
+const tcase=s=>s.toLowerCase().replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toUpperCase());
+let CH,items,byEan,mode=1,sel=[],tmr;
+const dt=m=>m===1?"¿Dónde conviene?":m===2?"Canasta en Tucumán":m===3?"Mejores descuentos":($("sub").value==="bajan"?"Lo que más bajó":"Lo que más subió");
+const fname=()=>["","producto","canasta","descuentos","subas-bajas"][mode];
+let lastDef="";
+const nm=i=>NOM[CH[i]]||CH[i];
+
+function setData(d){
+ D=d;CH=d.cadenas;
+ items=d.productos.map(r=>({ean:r[0],n:r[1].toLowerCase(),m:(r[2]||"").toLowerCase(),p:r[3],x:r[4]||null,s:strip(r[1]+" "+(r[2]||""))}));
+ byEan=Object.create(null);items.forEach(i=>{byEan[i.ean]=i});
+ calcOff();
+ $("fch").textContent=d.fecha;$("fch2").textContent=d.fecha;
+}
+function filas(it){
+ const pm=D.promos[it.ean]||{},out=[];
+ it.p.forEach((pr,i)=>{
+  if(pr==null)return;
+  let eff=pr,pro=null;const x=pm[String(i)];
+  if(x&&x[0]<pr&&vigente(x[1])){eff=x[0];pro=x}
+  out.push({i,pr,eff,pro,mx:(it.x&&it.x[i])||0});
+ });
+ return out.sort((a,b)=>a.eff-b.eff);
+}
+let OFF=[];
+function calcOff(){
+ OFF=[];
+ for(const ean in D.promos){
+  const it=byEan[ean];if(!it)continue;const pm=D.promos[ean];
+  for(const k in pm){
+   const i=+k,pr=it.p[i],x=pm[k];
+   if(pr==null||!(x[0]<pr)||pr<500||!vigente(x[1]))continue;
+   const pct=(pr-x[0])/pr*100;if(pct<5||pct>70)continue;
+   OFF.push({it,i,pr,pm:x[0],pct,leg:x[1]});
+  }
+ }
+ OFF.sort((a,b)=>b.pct-a.pct);
+}
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+
+/* ---------- dibujo ---------- */
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function fit(c,t,w){if(c.measureText(t).width<=w)return t;while(t.length>1&&c.measureText(t+"…").width>w)t=t.slice(0,-1);return t+"…"}
+function wrap(c,t,w,max){
+ const ws=t.split(" "),L=[];let l="";
+ for(const x of ws){const n=l?l+" "+x:x;if(c.measureText(n).width>w&&l){L.push(l);l=x}else l=n}
+ if(l)L.push(l);
+ if(L.length>max){L.length=max;L[max-1]=fit(c,L[max-1]+"…",w)}
+ return L;
+}
+function ph(c,x,y,w,t){c.font="500 32px "+FB;c.fillStyle="#5b6b78";c.textAlign="left";c.fillText(fit(c,t,w),x,y+60);return y+130}
+
+function rows(c,x,y,w,arr){
+ const max=arr[arr.length-1].v,RH=92,bx=x+310,bw=w-310-250;
+ arr.forEach((a,k)=>{
+  const top=k===0&&arr.length>1,yy=y+k*RH;
+  c.textAlign="left";c.font="700 32px "+FB;c.fillStyle="#12202b";c.fillText(fit(c,a.l,290),x,yy+44);
+  if(a.sub){c.font="600 22px "+FB;c.fillStyle="#a8390a";c.fillText(fit(c,a.sub,290),x,yy+74)}
+  else if(top){c.font="700 22px "+FB;c.fillStyle="#0b7a43";c.fillText("MÁS BARATO",x,yy+74)}
+  c.fillStyle=top?"#0b7a43":"#9db3c4";rr(c,bx,yy+24,Math.max(14,a.v/max*bw),30,15);c.fill();
+  c.textAlign="right";c.font="800 42px "+FD;c.fillStyle=top?"#0b7a43":"#12202b";c.fillText(money(a.v),x+w,yy+50);
+  if(a.old){c.font="400 22px "+FB;c.fillStyle="#5b6b78";c.fillText("antes "+money(a.old),x+w,yy+78)}
+  else if(a.rg){c.font="400 22px "+FB;c.fillStyle="#5b6b78";c.fillText("hasta "+money(a.rg),x+w,yy+78)}
+ });
+ y+=arr.length*RH;
+ if(arr.length>1){
+  const dif=max-arr[0].v;
+  if(dif>0){
+   y+=14;c.fillStyle="#dcf3e6";rr(c,x,y,w,84,22);c.fill();
+   c.textAlign="center";c.font="700 31px "+FB;c.fillStyle="#0b7a43";
+   c.fillText(fit(c,"Ahorrás "+money(dif)+" ("+Math.round(dif/max*100)+"%) frente a la más cara",w-40),x+w/2,y+53);
+   y+=84;
+  }
+ }
+ c.textAlign="left";
+ return y;
+}
+
+function body1(c,x,y,w){
+ const s=sel[0];if(!s)return ph(c,x,y,w,"Elegí un producto para ver la comparación");
+ const it=byEan[s.ean],f=filas(it);
+ c.textAlign="left";c.fillStyle="#12202b";c.font="800 46px "+FD;
+ const ln=wrap(c,tcase(it.n),w,3);
+ ln.forEach((t,i)=>c.fillText(t,x,y+46+i*54));
+ y+=46+(ln.length-1)*54;
+ if(it.m&&it.m!=="sin marca"){c.font="500 28px "+FB;c.fillStyle="#5b6b78";c.fillText(fit(c,tcase(it.m),w),x,y+44);y+=44}
+ y+=46;
+ return rows(c,x,y,w,f.map(r=>({l:nm(r.i),sub:r.pro?"Promo"+(hasta(r.pro[1])?" hasta "+hasta(r.pro[1]):""):"",v:r.eff,old:r.pro?r.pr:0,rg:(!r.pro&&r.mx>r.pr)?r.mx:0})));
+}
+
+function body2(c,x,y,w){
+ const L=sel.map(s=>({it:byEan[s.ean],qty:s.qty})).filter(r=>r.it).map(r=>({...r,f:filas(r.it)})).filter(r=>r.f.length);
+ if(!L.length)return ph(c,x,y,w,"Sumá productos para armar la canasta");
+ c.textAlign="left";c.font="800 36px "+FD;c.fillStyle="#12202b";c.fillText("Dónde conviene cada producto",x,y+36);y+=62;
+ L.forEach(r=>{
+  const b=r.f[0];
+  c.textAlign="right";c.font="800 32px "+FD;c.fillStyle="#0b7a43";c.fillText(money(b.eff*r.qty),x+w,y+34);
+  c.font="500 22px "+FB;c.fillStyle="#5b6b78";c.fillText(nm(b.i),x+w,y+60);
+  c.textAlign="left";c.font="600 28px "+FB;c.fillStyle="#12202b";
+  c.fillText(fit(c,(r.qty>1?r.qty+" × ":"")+tcase(r.it.n),w-250),x,y+34);
+  c.fillStyle="#e3eaef";c.fillRect(x,y+72,w,2);y+=76;
+ });
+ y+=26;
+ c.textAlign="left";c.font="800 36px "+FD;c.fillStyle="#12202b";c.fillText("Total en un solo lugar",x,y+36);y+=60;
+ const tot=CH.map((_,i)=>{let s=0,falta=0;L.forEach(r=>{const z=r.f.find(q=>q.i===i);if(z)s+=z.eff*r.qty;else falta++});return{i,s,falta}});
+ const comp=tot.filter(t=>t.falta===0).sort((a,b)=>a.s-b.s);
+ if(comp.length)y=rows(c,x,y,w,comp.map(t=>({l:nm(t.i),sub:"",v:t.s,old:0})));
+ else{c.font="500 28px "+FB;c.fillStyle="#5b6b78";c.fillText(fit(c,"Ninguna cadena informa todos los productos.",w),x,y+40);y+=70}
+ return y;
+}
+
+function lista(c,x,y,w,fil){
+ const RH=124;
+ fil.forEach((r,k)=>{
+  const yy=y+k*RH;
+  c.textAlign="left";c.font="700 30px "+FB;c.fillStyle="#12202b";
+  const ln=wrap(c,tcase(r.name),w-250,2);
+  ln.forEach((s,j)=>c.fillText(s,x,yy+34+j*34));
+  c.font="500 22px "+FB;c.fillStyle="#5b6b78";c.fillText(fit(c,r.sub,w-250),x,yy+34+ln.length*34+4);
+  c.textAlign="right";c.font="800 48px "+FD;c.fillStyle=r.col;c.fillText(r.big,x+w,yy+50);
+  if(r.p1){c.font="800 28px "+FD;c.fillStyle="#12202b";c.fillText(r.p1,x+w,yy+88)}
+  if(r.p2){c.font="400 21px "+FB;c.fillStyle="#5b6b78";c.fillText(r.p2,x+w,yy+112)}
+  c.fillStyle="#e3eaef";c.fillRect(x,yy+RH-6,w,2);
+ });
+ c.textAlign="left";
+ return y+fil.length*RH;
+}
+const NF=()=>({sq:5,v:6,st:9}[$("fmt").value]||6);
+function body3(c,x,y,w){
+ const sel=+$("sub").value;
+ const L=OFF.filter(o=>sel<0||o.i===sel).slice(0,NF());
+ if(!L.length)return ph(c,x,y,w,"No hay descuentos vigentes para esta opción");
+ return lista(c,x,y,w,L.map(o=>({name:o.it.n,sub:nm(o.i)+(hasta(o.leg)?" · hasta el "+hasta(o.leg):""),big:"−"+Math.round(o.pct)+"%",col:"#a8390a",p1:money(o.pm),p2:"antes "+money(o.pr)})));
+}
+function body4(c,x,y,w){
+ const R=D.ranking;
+ if(!R)return ph(c,x,y,w,"Todavía no hay comparación entre fechas");
+ const k=$("sub").value==="bajan"?"bajan":"suben";
+ const L=(R[k]||[]).slice(0,NF());
+ return lista(c,x,y,w,L.map(r=>({name:r[1],sub:"Mejor precio "+money(r[3])+" → "+money(r[4]),big:(r[2]>0?"+":"")+String(r[2]).replace(".",",")+"%",col:r[2]>0?"#a8390a":"#0b7a43",p1:"",p2:""})));
+}
+async function paint(){
+ try{await document.fonts.load('800 40px "Bricolage Grotesque"')}catch(e){}
+ const [fw,fh]=FORMS[$("fmt").value],HEAD=300,PAD=48,FOOT=160,CW=fw-80-2*PAD;
+ const body=[null,body1,body2,body3,body4][mode];
+ const off=document.createElement("canvas");off.width=fw;off.height=4000;
+ const endY=body(off.getContext("2d"),40+PAD,HEAD+PAD,CW);
+ const cardH=Math.max(fh-HEAD-FOOT,endY+PAD-HEAD),H=HEAD+cardH+FOOT;
+ const cv=window._cv||(window._cv=document.createElement("canvas"));
+ cv.width=fw;cv.height=H;
+ const c=cv.getContext("2d");
+ const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,"#0b5fa5");g.addColorStop(1,"#062f57");
+ c.fillStyle=g;c.fillRect(0,0,fw,H);
+ c.textAlign="left";c.font="800 58px "+FD;c.fillStyle="#fff";
+ c.fillText("Tucumán",56,104);const tw=c.measureText("Tucumán ").width;
+ c.fillStyle="#ffd23f";c.fillText("Ahorra",56+tw,104);
+ c.font="800 68px "+FD;c.fillStyle="#fff";c.fillText(fit(c,$("ttl").value||dt(mode),fw-112),56,204);
+ c.font="500 30px "+FB;c.fillStyle="#bcd9f2";c.fillText(mode===4&&D.ranking?"Cambio entre "+D.ranking.desde+" y "+D.ranking.hasta:"Datos al "+D.fecha,56,254);
+ c.fillStyle="#fff";rr(c,40,HEAD,fw-80,cardH,36);c.fill();
+ body(c,40+PAD,HEAD+PAD,CW);
+ const fy=HEAD+cardH+44;
+ c.textAlign="left";c.font="500 23px "+FB;c.fillStyle="#cfe3f5";
+ c.fillText(fit(c,"Fuente: Precios Claros (SEPA) · Precios de lista, sin descuentos bancarios.",fw-112),56,fy);
+ c.fillText(fit(c,"Pueden variar en el local. Sitio independiente, sin vínculo oficial.",fw-112),56,fy+32);
+ const ft=$("ftx").value.trim();
+ if(ft){c.font="800 32px "+FD;c.fillStyle="#ffd23f";c.fillText(fit(c,ft,fw-112),56,fy+80)}
+ $("prev").src=cv.toDataURL("image/png");
+}
+const later=()=>{clearTimeout(tmr);tmr=setTimeout(paint,200)};
+
+/* ---------- interfaz ---------- */
+function renderSel(){
+ const box=$("sel");box.textContent="";
+ const lst=mode===1?sel.slice(0,1):sel;
+ lst.forEach((s,k)=>{
+  const it=byEan[s.ean];if(!it)return;
+  const r=el("div","sel");r.appendChild(el("span",null,it.n));
+  const m=el("button","qb","−");m.type="button";m.setAttribute("aria-label","Quitar uno");
+  m.onclick=()=>{s.qty--;if(s.qty<=0)sel.splice(sel.indexOf(s),1);renderSel();later()};
+  const p=el("button","qb","+");p.type="button";p.setAttribute("aria-label","Sumar uno");
+  p.onclick=()=>{s.qty++;renderSel();later()};
+  const x=el("button","qb","×");x.type="button";x.setAttribute("aria-label","Quitar producto");
+  x.onclick=()=>{sel.splice(sel.indexOf(s),1);renderSel();later()};
+  r.append(m,el("b",null,String(s.qty)),p,x);
+  if(mode===1){m.style.display=p.style.display="none";r.children[2].style.display="none"}
+  box.appendChild(r);
+ });
+}
+function buscar(){
+ const q=strip($("q").value).trim(),box=$("res");box.textContent="";
+ if(q.length<2)return;
+ const tk=q.split(/\s+/);
+ const r=items.filter(it=>tk.every(t=>it.s.indexOf(t)>=0)).map(it=>({it,n:it.p.filter(v=>v!=null).length}))
+  .sort((a,b)=>b.n-a.n||a.it.n.length-b.it.n.length).slice(0,10);
+ if(!r.length){box.appendChild(el("p","msg","No encontramos ese producto."));return}
+ r.forEach(({it,n})=>{
+  const d=el("div","it"),s=el("span",null,it.n);s.appendChild(el("small",null,n+" cadenas"));
+  const b=el("button","add","+");b.type="button";b.setAttribute("aria-label","Agregar");
+  b.onclick=()=>{
+   const ya=sel.find(z=>z.ean===it.ean);
+   if(mode===1)sel=[{ean:it.ean,qty:1}];
+   else if(ya)ya.qty++;
+   else if(sel.length<8)sel.push({ean:it.ean,qty:1});
+   else{$("msg").textContent="Máximo 8 productos por imagen.";return}
+   $("msg").textContent="";renderSel();later();
+  };
+  d.append(s,b);box.appendChild(d);
+ });
+}
+function fillSub(){
+ const s=$("sub"),m=mode,prev=s.value;s.textContent="";
+ const add=(v,l)=>{const o=document.createElement("option");o.value=v;o.textContent=l;s.appendChild(o)};
+ if(m===3){add("-1","Todas las cadenas");CH.forEach((_,i)=>add(String(i),nm(i)))}
+ else if(m===4){add("suben","Los que más subieron");add("bajan","Los que más bajaron")}
+ if([...s.options].some(o=>o.value===prev))s.value=prev;
+}
+function syncTitle(){const d=dt(mode);if(!$("ttl").value||$("ttl").value===lastDef)$("ttl").value=d;lastDef=d}
+function setMode(m){
+ mode=m;
+ [1,2,3,4].forEach(k=>$("m"+k).classList.toggle("on",m===k));
+ $("prodcard").hidden=m>2;$("subw").hidden=m<3;
+ fillSub();syncTitle();
+ $("hint").textContent=m===1?"Elegí un producto: se compara en todas las cadenas.":"Sumá hasta 8 productos para armar la canasta.";
+ renderSel();later();
+}
+$("m1").onclick=()=>setMode(1);
+$("m2").onclick=()=>setMode(2);
+$("m3").onclick=()=>setMode(3);
+$("m4").onclick=()=>setMode(4);
+$("sub").onchange=()=>{syncTitle();later()};
+$("fmt").onchange=later;
+$("ttl").oninput=later;
+$("ftx").oninput=later;
+$("q").oninput=buscar;
+
+$("dl").onclick=async()=>{
+ const msg=$("msg");
+ let dls=null;
+ try{dls=window.claude&&await window.claude.use("downloads")}catch(e){}
+ if(!dls){
+  try{await paint();const bl=await new Promise(r=>window._cv.toBlob(r,"image/png"));
+   const a=document.createElement("a");a.href=URL.createObjectURL(bl);
+   a.download="tucuman-ahorra-"+fname()+".png";document.body.appendChild(a);a.click();a.remove();
+   msg.textContent="Imagen descargada.";}
+  catch(e){msg.textContent="Mantené apretada la imagen y elegí Guardar imagen."}
+  return}
+ try{
+  await paint();
+  const blob=await new Promise(r=>window._cv.toBlob(r,"image/png"));
+  await dls.save({filename:"tucuman-ahorra-"+fname()+".png",data:blob});
+  msg.textContent="Imagen guardada.";
+ }catch(e){
+  msg.textContent=e&&e.code==="declined"?"Cancelaste la descarga.":"No se pudo descargar. Mantené apretada la imagen para guardarla.";
+ }
+};
+$("jf").onchange=async()=>{
+ const f=$("jf").files[0];if(!f)return;
+ try{
+  const d=JSON.parse(await f.text());
+  if(!d.cadenas||!d.productos||!d.promos)throw new Error("formato");
+  setData(d);sel=[];renderSel();buscar();later();
+  $("msg2").textContent="Datos cargados: "+items.length.toLocaleString("es-AR")+" productos, al "+d.fecha+".";
+ }catch(e){$("msg2").textContent="El archivo no tiene el formato esperado."}
+};
+
+setData(D);
+$("ttl").value=dt(1);lastDef=dt(1);
+$("hint").textContent="Elegí un producto: se compara en todas las cadenas.";
+(function inicio(){
+ const a=items.find(i=>i.s.indexOf("yerba")>=0&&i.s.indexOf("rosamonte")>=0&&i.p.filter(v=>v!=null).length>=4);
+ if(a)sel=[{ean:a.ean,qty:1}];
+ renderSel();later();
+})();
+
+}).catch(e=>{document.body.insertAdjacentHTML("afterbegin","<p style=\"padding:20px\">No se pudieron cargar los datos.</p>")});
+</script>
+</body>
+  </html>
+  
